@@ -7,9 +7,18 @@ alwaysApply: true
 
 Agent módban **minden felhasználói üzenetre adott válasz végén** frissítsd a `docs/kommunikacio.md` fájlt:
 
-1. Új szekció: `## N. üzenetváltás` (sorszám növekedjen).
+1. Új szekció címsor formátuma:
+   ```
+   ## N. üzenetváltás — YYYY-MM-DD HH:MM
+   ```
+   - `N` = sorszám (növekvő)
+   - `YYYY-MM-DD HH:MM` = a felhasználó üzenetének **helyi időpontja** (24 órás formátum)
+   - Ha nincs pontos idő, használd a válasz írásának aktuális helyi idejét, és jelöld: `*(becsült)*` a címsor végén
+
 2. **Kérés:** a felhasználó üzenetének lényege (szó szerint vagy tömörítve).
+
 3. **Válasz:** az asszisztens válaszának lényege — **ne** írj bele gondolkodást, tool hívásokat, belső reasoninget.
-4. Frissítsd a fájl tetején a **Frissítve:** dátumot.
+
+4. Frissítsd a fájl tetején a **Frissítve:** sort is: `YYYY-MM-DD HH:MM` (+0200 helyi, ha releváns).
 
 Ez a feladat a válasz elküldése előtt/elküldésekor történjen, még ha más kód- vagy dokumentum-módosítás is volt.
