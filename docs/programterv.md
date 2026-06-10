@@ -31,7 +31,7 @@ Egy oldalnézetes, reflexalapú gördeszkás játék megvalósítása, amely:
 | K1 | Karakter oldalnézet, ~35% bal oldali pozíció, jobbra néz | kötelező |
 | K2 | Három állapot: gördülés, ugrás, lehajlás | kötelező |
 | K3 | Sikeres akció után rövid „fej felénk” animáció | kötelező |
-| K4 | Karikatúra arányok — nagy fej | kötelező |
+| K4 | Karikatúra arányok — fej 3×3 cella, vékony guggoló test | kötelező |
 | K5 | Bukás / ütközés animáció vagy állapot | kötelező |
 
 ### 2.2 Akadályok
@@ -137,15 +137,16 @@ MENU → PLAYING → (GAME_OVER | PAUSE) → MENU
 
 ## 5. Grafikai terv — technikai kérdések
 
-> Részletes Spectrum képernyő és grafika dokumentáció: [kepernyo-grafika.md](kepernyo-grafika.md)
+> Részletes Spectrum képernyő és grafika dokumentáció: [kepernyo-grafika.md](kepernyo-grafika.md)  
+> Gördeszkás sprite pixelterv: [karakter-grafika.md](karakter-grafika.md)
 
 | Kérdés | Lehetőségek | Döntés szükséges |
 |--------|-------------|------------------|
 | Rajzolási mód | Tile-alapú vs. sprite bitmap vs. hibrid | **igen** |
-| Karakter méret | 2×2 karakter cella? Egyedi bitmap? | **igen** |
+| Karakter méret | **3×6 cella** (24×48 px), fej 3×3, vékony test | **eldöntve** |
 | Akadályok | Megosztott tile-ok vs. külön sprite-ok típusonként | **igen** |
 | Út animáció | Scrolling tile map vs. egyszerű ismétlődő minta | **igen** |
-| Színek | Fix paletta karakterenként / attribútum zónák | **igen** |
+| Színek | **Fekete–fehér v1** — fix attribútum, később PAPER/INK | **eldöntve** |
 | „Fej felénk” | Külön sprite frame vs. cserélhető fej-rész | **igen** |
 | Középső sáv FX | Horizontális vonalak, felhők, „sebesség csíkok” | **igen** |
 
@@ -271,7 +272,8 @@ Minden akadályhoz:
 - [ ] Hang effektek
 - [ ] Kempston joystick
 - [ ] Kezdőképernyő, instrukciók
-- [ ] Grafikai finomítás, színek
+- [ ] Grafikai finomítás
+- [ ] *(Opcionális)* Színek: PAPER / INK módosítás
 
 ### Fázis 4 — Polish
 
@@ -292,6 +294,8 @@ Minden akadályhoz:
 | Kombó | **Igen** — láncolt sikeres akciók, hiba nullázza |
 | Életek | **3** alapból; hiba = −1 élet; **0 élet = game over** |
 | Kombó jutalom | **5-ös kombó** → +1 élet vissza |
+| Grafika színek | **Fekete–fehér** v1 — színkezelés nincs; később PAPER/INK finomítás |
+| Karakter méret | **3×6 cella** (24×48), fej felső 3×3 | [karakter-grafika.md](karakter-grafika.md) |
 
 ### Még nyitott (kódolás előtt érdemes tisztázni)
 
@@ -304,9 +308,9 @@ Minden akadályhoz:
 
 ### Grafika
 
-6. Milyen stílus — több szín, kevés szín, nagy pixelek (retro cartoon)?
-7. Hány különböző akadály kell az első játszható verzióban?
-8. Az út és háttér mennyire részletes legyen?
+6. Hány különböző akadály kell az első játszható verzióban?
+7. Az út és háttér mennyire részletes legyen? (fekete–fehér vázlat)
+8. Lehajlás: fej összenyomása vagy egész sprite alacsonyabb?
 
 ### Technika
 
@@ -329,7 +333,7 @@ Minden akadályhoz:
 | Teljes képernyő frissítés lassú | szaggatás | Csak változó régiók rajzolása |
 | Sok sprite → sok memória | overflow | Tile újrafelhasználás, kevés típus az elején |
 | Akadály + animáció + HUD | CPU túlterhelés | Egyszerű hitbox, fix képkocka logika |
-| Színes karikatúra | attribútum konfliktusok | Színezési zónák előre tervezve |
+| Színes verzió később | attribútum konfliktusok | v1 fekete–fehér; színezés csak későbbi fázis |
 | „Fej felénk” animáció | extra sprite adat | 1–2 extra frame, rövid időtartam |
 
 ---

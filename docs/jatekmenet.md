@@ -10,6 +10,9 @@ Egy gördeszkás karakter folyamatosan halad előre egy úton. Az úton és a fe
 
 - Gördeszkás fiú vagy lány — oldalnézetből látjuk.
 - A képernyő bal oldalától számított **35%-nál** áll; **jobbra néz**, mintha előre gördülne.
+- **Méret:** **3 karakter széles × 6 karakter magas** (24×48 pixel) az alsó játéksávban; a sáv 8 sor magas (64 px), a karakter alatta **16 px** margóval illeszkedik az úthoz.
+- **Fej:** a felső **3×3** karakteres területet foglalja el (24×24 px) — a magasság fele.
+- **Test:** vékony, középen; **félig guggoló** testtartás a gördeszkán.
 - Karikatúra stílus: a **feje aránytalanul nagy** a testhez képest.
 - **Sikeres akció után** (sikeres ugrás vagy lehajlás) a karakter **feje egy pillanatra felénk fordul** — rövid, jutalmazó reakció, mintha „na, megoldottam!” hangulatú lenne.
 - Három alapállapot:
@@ -149,6 +152,7 @@ A képernyő három vízszintes sávra oszlik:
 
 ## Hangulat és stílus
 
+- **Vizuális megjelenés:** fekete–fehér (monochrome) — az első verzióban nincs színkezelés; később esetleg háttér- vagy tintaszín módosítható.
 - Könnyed, humoros, karikatúra jellegű.
 - Nem brutális — macskák, kígyók, kövek inkább vicces vagy kalandos hangulatúak, nem ijesztők.
 - Gyors, reflexalapú, „még egy próba” érzésű játék.

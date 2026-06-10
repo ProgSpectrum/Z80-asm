@@ -2,7 +2,17 @@
 
 Ez a dokumentum a gördeszkás játék grafikai rétegének tervezési alapja. A játékmenet leírása: [jatekmenet.md](jatekmenet.md), az általános programterv: [programterv.md](programterv.md).
 
-**Célplatform:** ZX Spectrum 48K, standard ULA kijelző (256×192, színes attribútumok).
+**Célplatform:** ZX Spectrum 48K, standard ULA kijelző (256×192).
+
+### Grafikai döntés: fekete–fehér (v1)
+
+Az első verzióban **nem foglalkozunk színekkel** — a játék **fekete–fehér** (monochrome) megjelenésű:
+
+- Bitmap: fekete pixelek (1) és fehér háttér (0), vagy fordítva.
+- Attribútumok: egyszerű beállítás induláskor (pl. INK fekete, PAPER fehér az egész képernyőn), utána **nem kell** színkezelés sprite-rajzoláskor.
+- Későbbi fázisban opcionálisan változtatható a **háttérszín (PAPER)** vagy a **tinta (INK)** — pl. szürke út, fehér ég — ha a játékmenet és a teljesítmény megengedi.
+
+Ez **egyszerűsíti** a fejlesztést: nincs attribute clash gond, nincs színezési zóna tervezés, a sprite-ok csak bitminták.
 
 ---
 
@@ -81,6 +91,8 @@ F B P P P I I I
 | FLASH | 7 | Villogás |
 
 **Attribute clash:** egy 8×8 pixeles cellában csak **egy** INK és **egy** PAPER szín lehet. Ha két színes objektum átfedi egymást ugyanabban a cellában, a színek „összecsúsznak” — ez a Spectrum leghírhedtebb grafikai korlátja.
+
+> **v1 (fekete–fehér):** clash **nem releváns** — egyetlen INK/PAPER pár az egész képernyőn, csak a bitmap bitek számítanak.
 
 ---
 
@@ -174,6 +186,18 @@ A játékötlet három vízszintes sávja **szinte pontosan** illeszkedik a Spec
 
 A gördeszkás bal széle kb. **11. oszlopnál** (0-alapú), jobbra néz.
 
+### Gördeszkás sprite mérete (eldöntve)
+
+| Paraméter | Érték |
+|-----------|-------|
+| Szélesség | **3** karakter cella = **24 px** |
+| Magasság | **6** karakter cella = **48 px** |
+| Fej | Felső **3×3** cella (24×24 px) |
+| Test | Vékony, középen, félig guggoló |
+| Gördeszka | Alsó 1 sor cella (3×1) |
+
+Részletes pixelterv: [karakter-grafika.md](karakter-grafika.md).
+
 ---
 
 ## 5. Szöveg és kiírás (HUD)
@@ -197,7 +221,7 @@ A gördeszkás bal széle kb. **11. oszlopnál** (0-alapú), jobbra néz.
 | Pontszám, rekord, pálya | ROM `PRINT_AT` vagy saját 8×8 font |
 | Életek | UDG ikonok (pl. szív) **vagy** ASCII karakterek |
 | Kombó | Szöveg: „x5” — csak változáskor frissíteni |
-| Színek | Előre beírt attribútum sáv a felső 1–2 sorban |
+| Színek | Nem kezeljük — induláskor egyszer beállított fekete/fehér attribútum |
 
 **Optimalizálás:** ne minden képkockában írjuk újra a HUD-ot — csak ha az érték változott (dirty flag).
 
@@ -250,8 +274,7 @@ Teljes második képernyőpuffer (6912 bájt) **nem fér el** 48K-ban a játékk
 
 ### 6.4 Villogás (FLASH) és BRIGHT
 
-- **FLASH bit:** kerülendő játéktérben — a ULA váltogatja a színeket, zavaró és nehezebb szinkronban tartani.
-- **BRIGHT:** használható kiemeléshez (kombó „x5!”, élet ikon), de spórolni kell vele a „szép” megjelenésért.
+**v1-ben nem használjuk** — fekete–fehér módban nincs rá szükség. Későbbi színes verzióban a FLASH kerülendő játéktérben, a BRIGHT opcionális kiemelés lehet.
 
 ---
 
@@ -296,7 +319,7 @@ Ez **sokkal olcsóbb**, mint a teljes alsó harmad bit-shift scrollja, és illik
 
 | Réteg | Megvalósítás |
 |-------|--------------|
-| Út szín | Attribútum: pl. PAPER=7 (fehér/szürke), INK=0 (fekete vonalak) |
+| Út „szín” | Bitmap kontraszt: fekete vonalak fehér háttéren (attribútum fix) |
 | Út vonalak | 1–2 pixel magas vízszintes vonalak, `offset` minden frame-ben +1 mod N |
 | Útpadló textúra | 8×8 vagy 16×8 tile ismétlés, nem kell scrollozni — az akadály mozgás adja az érzetet |
 | Távolabbi háttér (középső sáv) | Egyszerű sziluettek, lassabb scroll sebesség (parallax) |
@@ -306,8 +329,7 @@ Ez **sokkal olcsóbb**, mint a teljes alsó harmad bit-shift scrollja, és illik
 Olcsó, hatásos technikák (CPU barát):
 
 - Víszintes **1 pixel magas vonalak** balra tolása (`scroll_offset` alapján újrarajz).
-- **BRIGHT** csík pulzálás a sebesség növekedésével.
-- **Attribútum színezés** váltás (nem bitmap) — nagyon gyors, de durvább hatás.
+- **Vonal sűrűség** vagy **vastagság** növelése a sebességgel (bitmap, színek nélkül).
 - Felhő / épület sziluett **lassú** scroll (parallax: `offset / 2`).
 
 ---
@@ -319,7 +341,8 @@ Olcsó, hatásos technikák (CPU barát):
 | Formátum | Méret | Előny | Hátrány |
 |----------|-------|-------|---------|
 | **8×8 egybefüggő** | 8 bájt | Gyors, cella-igazított | Durva, kevés részlet |
-| **16×16 maszkolt** | 32+32 bájt/frame | Jó minőség | Több memória, lassabb |
+| **24×48 (3×6 cella)** | 144 bájt/frame | **Gördeszkás — végleges méret** | 18 db 8×8 tile |
+| **16×16 maszkolt** | 32+32 bájt/frame | Akadályokhoz | Kisebb tárgyak |
 | **16×16 pre-shifted** | 8×(16+2) bájt | Gyors vízszintes pozíció | Sok memória (8 vízszintes offset) |
 | **Többrétegű** | test + fej külön | „Fej felénk” csak fejcsere | Két sprite összerakás |
 
@@ -350,13 +373,15 @@ A Spectrum bitek **byte-határon** vannak — ha a sprite nem 8-as többszörös
 
 ### 8.4 Attribute clash kezelése
 
+**v1 (fekete–fehér):** nem kell clash-kezelés — a sprite-ok csak bitminták, az attribútum egységes.
+
+Későbbi színes verzióban (ha lesz):
+
 | Stratégia | Alkalmazás |
 |-----------|------------|
-| **Színezési zónák** | Út = szürke PAPER, karakter = saját cellák saját INK-je |
-| **8×8 rácsra igazítás** | Sprite-ok cellahatáron, kevesebb átfedés |
-| **Kiemelt színek** | Karakter feje: BRIGHT sárga; test: barna — külön cellák |
-| **Minimalizált átfedés** | Akadály és karakter ne foglalja ugyanazt a 8×8 cellát |
-| **Tudatos „retro” stílus** | A clash része a hangulatnak — elfogadható karikatúra játéknál |
+| **Színezési zónák** | Út PAPER, karakter INK — külön cellák |
+| **8×8 rácsra igazítás** | Kevesebb átfedés |
+| **Minimalizált átfedés** | Akadály és karakter külön cellákban |
 
 **„Fej felénk” animáció:** külön **fej sprite frame** (4–6 bájt magas, 16 széles) cseréje — nem kell az egész testet újrarajzolni.
 
@@ -437,12 +462,12 @@ Grafika készítés workflow:
 | HUD | ROM szöveg + UDG ikonok | Gyors, olcsó |
 | Út / háttér | Statikus pattern + scroll offset vonalak | Nem kell teljes scroll |
 | Akadály mozgás | X csökkentés, 8-pixel rács | Olcsó, clash kezelhető |
-| Karakter | 16×24 maszkolt, save-under | Jó megjelenés, fix X |
+| Karakter | **3×6 cella (24×48)**, save-under, 18 tile/frame | Végleges méret, fix X |
 | „Fej felénk” | Külön fej frame csere | Kevés extra rajzolás |
 | Középső sáv FX | Víszintes vonal scroll + parallax | Sebesség érzet olcsón |
 | Frissítés | Részleges, dirty flag HUD | 50 FPS közeli élmény |
-| Színek | Fix paletta, BRIGHT kiemelés | Kevesebb clash |
-| FLASH | Nem használjuk | Zavaró játékban |
+| Színek | **Fekete–fehér, fix attribútum** — színkezelés nincs | Egyszerűbb kód, nincs clash |
+| FLASH / BRIGHT | Nem használjuk (v1) | Később opcionális |
 
 ---
 
@@ -450,13 +475,14 @@ Grafika készítés workflow:
 
 Ezeket érdemes a prototípus előtt véglegesíteni:
 
-1. **Karakter méret:** 16×16 elég, vagy 16×24 kell a nagy fej miatt?
-2. **Színpaletta:** hány szín aktív egyszerre (pl. max 4–5 INK)?
-3. **Út stílus:** városi aszfalt, vidéki út, vagy absztrakt „csíkos” retro?
-4. **Középső sáv:** tényleges tájkép (épületek, felhő) vagy absztrakt sebesség vonalak?
-5. **Pre-shifted:** karakternél igen/nem — memória vs. simaság?
-6. **Akadály méret:** 8×8 elég (macska, kő), vagy 16×16 kell?
-7. **Grafika eszköz:** melyik editorral készülnek a sprite-ok?
+1. ~~**Karakter méret**~~ — **eldöntve:** 3×6 cella (24×48), fej 3×3
+2. **Út stílus:** városi aszfalt, vidéki út, vagy absztrakt „csíkos” retro?
+3. **Középső sáv:** tényleges tájkép (épületek, felhő) vagy absztrakt sebesség vonalak?
+4. **Pre-shifted:** karakternél igen/nem — memória vs. simaság?
+5. **Akadály méret:** 8×8 elég (macska, kő), vagy 16×16 kell?
+6. **Grafika eszköz:** melyik editorral készülnek a sprite-ok?
+
+**Később (nem v1):** PAPER / INK színek finomhangolása — pl. szürke út, világos ég.
 
 ---
 
@@ -473,10 +499,10 @@ Ezeket érdemes a prototípus előtt véglegesíteni:
 ## 15. Következő lépés
 
 1. Nyitott kérdések (13. fejezet) átbeszélése  
-2. Papír/pixel vázlat: karakter + út + 2 akadály a **alsó harmadban**  
-3. Színpaletta és attribútum térkép fixálása  
-4. Fázis 0 grafikai prototípus: statikus út + egy mozgó kő + karakter 3 frame  
+2. Papír/pixel vázlat: karakter + út + 2 akadály a **alsó harmadban** (fekete–fehér)  
+3. Fázis 0 grafikai prototípus: statikus út + egy mozgó kő + karakter 3 frame  
+4. *(Később)* Színek kipróbálása — PAPER / INK módosítás egy rutinnal  
 
 ---
 
-*Dokumentum verzió: 1.0 — Spectrum 48K képernyő technikai tervezés*
+*Dokumentum verzió: 1.1 — fekete–fehér v1 döntés rögzítve*
