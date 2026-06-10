@@ -3,4 +3,4 @@ bin/*.tzx
 bin/*.z80
 bin/*.sna
 bin/*.bin
-tools/*.*
+tools/*

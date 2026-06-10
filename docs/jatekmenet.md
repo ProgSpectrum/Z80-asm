@@ -39,7 +39,7 @@ Ezek az úton, a gördeszka szintjén vagy közvetlenül előtte jelennek meg. H
 | **Kígyók** | Kígyók az úton — kígyóznak vagy gubbasztanak. |
 | **Egyéb tárgyak** | Pl. konzervdoboz, göngyöleg, bicikli, stb. — a pálya változatosságát növelik. |
 
-**Ugrás:** egyetlen gombbal aktiválható. A karakter a levegőbe emelkedik, átrepül az akadályon, majd visszaér a gördeszkára.
+**Ugrás:** a **Fel** billentyűvel aktiválható. A karakter a levegőbe emelkedik, átrepül az akadályon, majd visszaér a gördeszkára.
 
 ---
 
@@ -53,7 +53,47 @@ Ezek a karakter feje magassága körül, előlről vagy felülről érkeznek. Ha
 | **Madarak** | Madarak repülnek át a magasságában. |
 | **Egyéb repülő tárgyak** | Pl. papírrepülő, frisbee, leeső tárgy — a pálya változatosságát növelik. |
 
-**Lehajlás:** a karakter lekuporodik / előrehajol a gördeszkán, a feje lejjebb kerül, és átengedi a repülő akadályt.
+**Lehajlás:** a **Le** billentyűvel aktiválható. A karakter lekuporodik / előrehajol a gördeszkán, a feje lejjebb kerül, és átengedi a repülő akadályt.
+
+---
+
+## Vezérlés
+
+A játék **két billentyűvel** irányítható — más gomb nem szükséges:
+
+| Billentyű | Akció |
+|-----------|-------|
+| **Fel** | Ugrás — úti akadályok elkerülésére |
+| **Le** | Lehajlás — fej fölötti akadályok elkerülésére |
+
+Nincs külön gomb a gördüléshez: ha nem nyomunk semmit, a karakter automatikusan halad előre alaphelyzetben.
+
+---
+
+## Akadályok szabálya
+
+**Egyszerre soha nem jelenik meg úti és fej fölötti akadály.** Minden pillanatban legfeljebb egy akadály aktív a képernyőn — vagy lent kell ugrani, vagy felül le kell hajolni, de soha nem mindkettő egyszerre.
+
+Ez tisztán tartható a reflexjátékot: mindig egyértelmű, melyik billentyű kell.
+
+---
+
+## Életek
+
+- Alapértelmezés szerint **3 élet** áll rendelkezésre egy pályán — háromszor hibázhat a játékos ütközés nélkül el nem került akadály miatt.
+- **Egy hiba = egy élet elvesztése.** A karakter összeesik vagy megáll, rövid bukás után a játék folytatódik a megmaradt életekkel.
+- **A játék akkor ér véget, ha az összes élet elfogy** — nincs több esély.
+- A felső sávon látható, hány élet maradt (pl. ikonok vagy számláló).
+
+---
+
+## Kombó rendszer
+
+- Ha a játékos **egymás után**, hiba nélkül kerül el akadályokat, **kombó** épül.
+- Minden sikeres elkerülés növeli a kombó számlálót; **hiba esetén a kombó nullázódik**.
+- A kombó **extra pontot** ad (minél magasabb a lánc, annál értékesebb a sikeres mozdulat).
+- **5-ös kombó jutalma:** ha a játékos **összehoz egy 5-ös kombót**, **visszakap egy életet** — pl. 1 életnél visszamegy 2-re, 2 életnél vissza 3-ra. Így a kockázatosabb futások során is van esély kigúzni a teljes kifogyás elől, ha ügyesen soroz.
+- A kombó állapota a képernyőn is látható legyen (pl. „x3”, „x5!”), hogy a játékos érezze, közel van-e az élet-jutalomhoz.
 
 ---
 
@@ -74,9 +114,11 @@ A képernyő három vízszintes sávra oszlik:
 
 ### Felső harmad — információk
 
-- **Pontszám** — az aktuális futás pontjai; sikeres akadályok elkerülése növeli.
+- **Pontszám** — az aktuális futás pontjai; sikeres akadályok elkerülése növeli, a kombó szorzóval.
 - **Rekord** — a valaha elért legjobb eredmény.
 - **Pálya száma** — hányadik „szakaszon” / hullámon tart a játékos (a nehezítés vizuális mérföldköve).
+- **Életek** — három (vagy kevesebb) megmaradt esély; vizuálisan jól látható.
+- **Kombó** — aktuális láncolt sikeres akciók száma.
 
 ### Középső harmad — sebesség jelzés
 
@@ -94,13 +136,14 @@ A képernyő három vízszintes sávra oszlik:
 
 ## Játékmenet ciklusa
 
-1. A játék indul — a gördeszkás elindul, lassú tempóval.
-2. Akadályok érkeznek az úton és a feje fölött.
-3. A játékos ugrál vagy lehajol, ahogy kell.
-4. Sikeres elkerülés → rövid „fej felénk” reakció + pont.
-5. A sebesség és a sűrűség fokozatosan nő.
-6. Ütközés → a futás véget ér.
-7. Megjelenik az eredmény; lehet újra próbálni a rekord megdöntésére.
+1. A játék indul — a gördeszkás elindul, lassú tempóval, **3 élettel**.
+2. Egyesével érkeznek az akadályok — vagy úti (Fel), vagy fej fölötti (Le), soha egyszerre mindkettő.
+3. A játékos a megfelelő billentyűvel reagál.
+4. **Sikeres elkerülés** → rövid „fej felénk” reakció + pont + kombó nő.
+5. **5-ös kombó** → extra jutalom: **+1 élet** (ha még nem a maximumnál van).
+6. A sebesség és a sűrűség fokozatosan nő.
+7. **Ütközés** → egy élet elvesztése, kombó nullázódik, rövid bukás, majd folytatás a megmaradt életekkel.
+8. **Minden élet elfogyott** → a játék véget ér, megjelenik az eredmény; lehet újra próbálni a rekord megdöntésére.
 
 ---
 
@@ -115,8 +158,9 @@ A képernyő három vízszintes sávra oszlik:
 
 ## Nyitott játékmeneti kérdések (később pontosítható)
 
-- Van-e combo / láncolt sikeres akció bónusz?
-- Lehet-e kétféle akadály egyszerre (pl. kő alatt ág)?
-- Hogyan néz ki a „game over” — azonnali megállás vagy bukás animáció?
-- Van-e készülődési idő az akadályok előtt (pl. felkiáltásjel), vagy csak tiszta reflex?
+- Pályaváltáskor újratöltődnek-e a 3 élet, vagy egy futásra szólnak az életek?
+- Van-e felső határ az életek számának (pl. max. 3, vagy 5-ös kombóval lehet 4 is)?
+- A 5-ös kombó pontszám-bónuszt is ad, vagy csak életet?
+- Hogyan néz ki a bukás — azonnali megállás vagy rövid animáció után folytatódik?
+- Van-e előjelezés az akadályok előtt (pl. felkiáltásjel), vagy csak tiszta reflex?
 - A pálya száma automatikusan nő idővel, vagy fix távolságok után?

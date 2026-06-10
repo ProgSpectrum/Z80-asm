@@ -15,7 +15,9 @@ Egy oldalnézetes, reflexalapú gördeszkás játék megvalósítása, amely:
 - az alsó harmadban jeleníti meg a játékteret;
 - a középső harmadban vizuálisan kommunikálja a sebességet;
 - a felső harmadban mutatja a pontszámot, rekordot és pályaszámot;
-- két akciótípust kezel (ugrás, lehajlás);
+- két akciótípust kezel (ugrás, lehajlás) — **Fel / Le** billentyűkkel;
+- **3 élet** rendszert alkalmaz, **kombó**-val (+1 élet 5-ös kombónál);
+- egyszerre legfeljebb **egy** akadály (úti VAGY fej fölötti, nem mindkettő);
 - fokozatos nehezítést alkalmaz (sebesség + sűrűség).
 
 ---
@@ -41,6 +43,7 @@ Egy oldalnézetes, reflexalapú gördeszkás játék megvalósítása, amely:
 | A3 | Akadályok jobbról érkeznek, balra mozognak | kötelező |
 | A4 | Ütközésdetektálás ugrás / lehajlás állapot alapján | kötelező |
 | A5 | Akadálykészlet bővíthető (új típusok később) | kívánatos |
+| A6 | Egyszerre max. 1 aktív akadály — GROUND **vagy** AIR, soha mindkettő | kötelező |
 
 ### 2.3 Nehezítés és pontozás
 
@@ -51,25 +54,38 @@ Egy oldalnézetes, reflexalapú gördeszkás játék megvalósítása, amely:
 | N3 | Pontszám növelése sikeres elkerüléskor | kötelező |
 | N4 | Rekord tárolása (játék session vagy tartós) | kötelező |
 | N5 | Pályaszám növelése (idő- vagy távolság alapú) | kötelező |
+| N6 | Kombó számláló: sikeres lánc növeli, hiba nullázza | kötelező |
+| N7 | Kombó pontszorzó vagy extra pont sikeres láncokra | kötelező |
+| N8 | 5-ös kombó → +1 élet visszaállítás | kötelező |
 
-### 2.4 Képernyő és UI
+### 2.4 Életek és game over
+
+| # | Követelmény | Prioritás |
+|---|-------------|-----------|
+| E1 | Alapértelmezés: **3 élet** egy pályán | kötelező |
+| E2 | Ütközés → −1 élet, kombó reset, játék folytatódik | kötelező |
+| E3 | 0 élet → game over (nem azonnali első hibánál) | kötelező |
+| E4 | Életek megjelenítése a felső HUD-ban | kötelező |
+| E5 | 5-ös kombó → +1 élet (ha van mit visszaállítani) | kötelező |
+
+### 2.5 Képernyő és UI
 
 | # | Követelmény | Prioritás |
 |---|-------------|-----------|
 | U1 | Három vízszintes sáv: info / sebesség / játék | kötelező |
-| U2 | Felső sáv: pontszám, rekord, pályaszám | kötelező |
+| U2 | Felső sáv: pontszám, rekord, pályaszám, életek, kombó | kötelező |
 | U3 | Középső sáv: sebesség animáció (nem csak szám) | kötelező |
 | U4 | Alsó sáv: út + karakter + akadályok | kötelező |
 | U5 | Kezdőképernyő és game over képernyő | kötelező |
 
-### 2.5 Vezérlés
+### 2.6 Vezérlés
 
 | # | Követelmény | Prioritás |
 |---|-------------|-----------|
-| V1 | Egy gomb: ugrás | kötelező |
-| V2 | Egy gomb: lehajlás | kötelező |
-| V3 | Kempston joystick támogatás | kívánatos |
-| V4 | Billentyűzet (pl. Q/A/O/P/Space) | kötelező |
+| V1 | **Fel** billentyű = ugrás | kötelező |
+| V2 | **Le** billentyű = lehajlás | kötelező |
+| V3 | Csak ez a két gomb — nincs egyéb akciógomb | kötelező |
+| V4 | Kempston joystick (Fel/Le tengely vagy 2 gomb) | kívánatos |
 
 ---
 
@@ -89,13 +105,13 @@ Egy oldalnézetes, reflexalapú gördeszkás játék megvalósítása, amely:
 
 ```
 main.asm          — init, főciklus, állapotgép
-input.asm         — billentyű / joystick olvasás
+input.asm         — Fel / Le billentyű (és opcionális Kempston)
 player.asm        — karakter állapot, animáció, hitbox
 obstacles.asm     — akadály spawn, mozgás, típusok
 collision.asm     — ütközésellenőrzés
 scroll.asm        — út / háttér görgetés
 speed.asm         — sebesség és sűrűség skálázás
-hud.asm           — pontszám, rekord, pályaszám
+hud.asm           — pontszám, rekord, pályaszám, életek, kombó
 speed_fx.asm      — középső sáv sebesség animáció
 sprites.asm       — karakter és akadály grafika (adat)
 sound.asm         — effektek (opcionális első verzióban)
@@ -120,6 +136,8 @@ MENU → PLAYING → (GAME_OVER | PAUSE) → MENU
 ---
 
 ## 5. Grafikai terv — technikai kérdések
+
+> Részletes Spectrum képernyő és grafika dokumentáció: [kepernyo-grafika.md](kepernyo-grafika.md)
 
 | Kérdés | Lehetőségek | Döntés szükséges |
 |--------|-------------|------------------|
@@ -160,7 +178,7 @@ Minden akadályhoz:
 - Időzítő alapú: `next_spawn = base_interval / difficulty`
 - Véletlenszerű típusválasztás súlyozással
 - Minimum távolság két akadály között (ütközés elkerülése a generálásnál)
-- **Nyitott:** lehet-e egyszerre GROUND + AIR akadály?
+- **Döntés:** egyszerre max. 1 akadály — spawn logika váltogat GROUND / AIR között, soha nem párosít
 
 ### 6.3 Ütközés (hitbox)
 
@@ -227,8 +245,9 @@ Minden akadályhoz:
 - [ ] Karakter megjelenítés egy pozícióban
 - [ ] Egy akadálytípus (kő) spawn + mozgás
 - [ ] Ugrás működik, ütközés detektálás
-- [ ] Game over + újraindítás
-- [ ] Egyszerű pontszám
+- [ ] 3 élet + hiba esetén folytatás (nem azonnali game over)
+- [ ] Game over ha 0 élet + újraindítás
+- [ ] Egyszerű pontszám + kombó számláló
 
 **Cél:** „működik-e az alap loop?” — 1–2 nap
 
@@ -244,6 +263,7 @@ Minden akadályhoz:
 - [ ] Felső harmad: pontszám, rekord, pályaszám
 - [ ] Középső harmad: sebesség animáció
 - [ ] Nehezítés: sebesség + sűrűség skálázás
+- [ ] 5-ös kombó → +1 élet visszaállítás
 
 ### Fázis 3 — Finomítás
 
@@ -261,17 +281,26 @@ Minden akadályhoz:
 
 ---
 
-## 12. Nyitott döntési kérdések — összefoglaló
+## 12. Döntések és nyitott kérdések
 
-Ezeket érdemes **kódolás előtt** egyeztetni:
+### Már eldöntve
 
-### Játékmenet
+| Téma | Döntés |
+|------|--------|
+| Vezérlés | Csak **Fel** (ugrás) és **Le** (lehajlás) billentyű |
+| Akadály párosítás | **Nem** — egyszerre max. 1 akadály (úti vagy fej fölötti) |
+| Kombó | **Igen** — láncolt sikeres akciók, hiba nullázza |
+| Életek | **3** alapból; hiba = −1 élet; **0 élet = game over** |
+| Kombó jutalom | **5-ös kombó** → +1 élet vissza |
 
-1. Lehet egyszerre ugrós és lehajlós akadály (kombinált feladat)?
-2. Van-e előjelezés (pl. felkiáltójel) az akadályok előtt?
-3. A lehajlás: gomb tartása vagy automatikus fix időtartam?
-4. Combo rendszer kell-e?
-5. Mi történik game over-nál — azonnali stop vagy bukás animáció + késleltetés?
+### Még nyitott (kódolás előtt érdemes tisztázni)
+
+1. Pályaváltáskor újratöltődnek-e a 3 élet?
+2. Max. életszám korlát (pl. 3 felett nem mehet kombó jutalom)?
+3. A 5-ös kombó ad-e extra pontot is, vagy csak életet?
+4. Van-e előjelezés az akadályok előtt (pl. felkiáltásjel)?
+5. Lehajlás: gomb tartása vagy automatikus fix időtartam?
+6. Bukás animáció hossza game over előtt / életvesztéskor?
 
 ### Grafika
 
@@ -286,10 +315,10 @@ Ezeket érdemes **kódolás előtt** egyeztetni:
 11. Kell-e zenék vagy elég a hang effekt?
 12. Rekord perzisztens legyen (betöltéskor megmarad)?
 
-### Vezérlés
+### Vezérlés / technika
 
-13. Mely billentyűk legyenek? (Javaslat: `O` = ugrás, `P` = lehajlás, `Space` = bármelyik?)
-14. Kempston az első verzióban kötelező?
+13. Kempston az első verzióban kötelező?
+14. Spectrum billentyűkódok: Fel = `7` (P), Le = `6` (O) — vagy cursor keys?
 
 ---
 
@@ -314,7 +343,9 @@ Ezeket érdemes **kódolás előtt** egyeztetni:
 - [ ] Az akadályok sűrűsödnek
 - [ ] Pontszám és rekord látható a felső sávban
 - [ ] A középső sáv jelzi vizuálisan a tempót
-- [ ] Game over után újra lehet kezdeni
+- [ ] 3 élet, életvesztés után folytatódik a játék
+- [ ] 5-ös kombó visszaad egy életet
+- [ ] Game over csak 0 életnél; utána újra lehet kezdeni
 - [ ] Fuse 48K emulátorban stabilan fut
 
 ---
@@ -328,4 +359,4 @@ Ezeket érdemes **kódolás előtt** egyeztetni:
 
 ---
 
-*Dokumentum verzió: 1.0 — tervezési fázis, implementáció előtt*
+*Dokumentum verzió: 1.1 — élet + kombó + vezérlés döntések rögzítve*
