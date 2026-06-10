@@ -1,0 +1,15 @@
+---
+description: Kommunikációs napló frissítése agent módban minden válasz után
+alwaysApply: true
+---
+
+# Kommunikációs napló
+
+Agent módban **minden felhasználói üzenetre adott válasz végén** frissítsd a `docs/kommunikacio.md` fájlt:
+
+1. Új szekció: `## N. üzenetváltás` (sorszám növekedjen).
+2. **Kérés:** a felhasználó üzenetének lényege (szó szerint vagy tömörítve).
+3. **Válasz:** az asszisztens válaszának lényege — **ne** írj bele gondolkodást, tool hívásokat, belső reasoninget.
+4. Frissítsd a fájl tetején a **Frissítve:** dátumot.
+
+Ez a feladat a válasz elküldése előtt/elküldésekor történjen, még ha más kód- vagy dokumentum-módosítás is volt.
